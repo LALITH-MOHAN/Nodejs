@@ -1,15 +1,17 @@
 import express from 'express';
 import cors from 'cors';
-import router from './route/userRoutes.js';
+import userRoutes from './route/userRoutes.js';
 
 const app = express();
 
-// Enable CORS
-app.use(cors());
-
+// Middleware
+app.use(cors()); // Enables CORS for all origins (safe for dev)
 app.use(express.json());
-app.use('/users', router);
 
-app.listen(3000, () => {
-  console.log("LISTENING ON PORT 3000....");
+// Routes
+app.use('/api', userRoutes);
+
+// Start server
+app.listen(5000, () => {
+  console.log('Server running at http://localhost:5000');
 });

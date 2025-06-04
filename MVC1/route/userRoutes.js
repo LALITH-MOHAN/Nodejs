@@ -1,10 +1,16 @@
-import { fetchusers,fetchuserbyid } from "../controller/userController.js";
 import express from 'express';
+import {
+  listUsers,
+  createUser,
+  editUser,
+  removeUser
+} from '../controller/userController.js';
 
-const router=express.Router();
+const router = express.Router();
 
-router.get('/',fetchusers);
-router.get('/:id',fetchuserbyid);
+router.get('/users', listUsers);
+router.post('/users', createUser);
+router.put('/users/:id', editUser);
+router.delete('/users/:id', removeUser);
 
 export default router;
-
