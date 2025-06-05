@@ -9,13 +9,7 @@ app.use(express.json());
 app.use('/api', userRoutes);
 
 describe('User API', () => {
-  beforeEach(() => {
-    // Reset the users array before each test
-    userModel.resetUsers([
-      { id: 1, name: 'Alice' },
-      { id: 2, name: 'Bob' }
-    ]);
-  });
+  beforeEach(() => {userModel.resetUsers([  { id: 1, name: 'Alice' },  { id: 2, name: 'Bob' }]); });
 
   it('should get all users', async () => {
     const res = await request(app).get('/api/users');
