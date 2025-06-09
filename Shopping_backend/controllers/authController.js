@@ -28,7 +28,7 @@ export const register = async (req, res) => {
     // Create token
     const token = jwt.sign(
       { id: userId, role: 'customer' },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.JWT_SECRET || 'Nikithaa123',
       { expiresIn: '1d' }
     );
 
@@ -55,11 +55,14 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    // Use the same JWT_SECRET as in register
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      process.env.JWT_SECRET ,
+      process.env.JWT_SECRET || 'Nikithaa123', // Added fallback
       { expiresIn: '1d' }
     );
+
     const { password: _, ...userData } = user;
     res.json({ 
       message: 'Login successful',
