@@ -5,8 +5,8 @@ const db = await mysql.createPool({
   user: 'root',
   password: 'root',
   database: 'shopping_cart',
-  waitForConnections: true, 
-  connectionLimit: 10       
+  waitForConnections: true,
+  connectionLimit: 10
 });
 
 export default db;
