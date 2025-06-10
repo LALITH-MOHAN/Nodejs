@@ -6,13 +6,14 @@ export const placeOrder = async (req, res) => {
     const { items, total } = req.body;
 
     if (!items || !items.length) {
-      return res.status(400).json({ error: "Cart is empty" });
+      return res.status(400).json({ message: "Cart is empty" });
     }
 
-    const order = await createOrder(userId, total, items);
-    res.status(201).json(order);
+    const orderId = await createOrder(userId, total, items);
+    const orders = await getUserOrders(userId); // Return updated orders list
+    
+    res.status(201).json(orders);
   } catch (error) {
-    console.error("Order placement failed:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -23,7 +24,6 @@ export const getOrders = async (req, res) => {
     const orders = await getUserOrders(userId);
     res.json(orders);
   } catch (error) {
-    console.error("Failed to fetch orders:", error);
     res.status(500).json({ error: error.message });
   }
 };
