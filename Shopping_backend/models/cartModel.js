@@ -1,21 +1,43 @@
 import db from "../config/db.js";
 
 export const getCartItems = async (userId) => {
-  const [rows] = await db.query(`SELECT ci.id, ci.quantity,p.id as product_id, p.title, p.price, p.thumbnail, p.stock 
+  const [rows] = await db.query(`
+    SELECT ci.id, ci.quantity, 
+           p.id as product_id, p.title, p.price, p.thumbnail, p.stock
     FROM cart_items ci
     JOIN products p ON ci.product_id = p.id
     WHERE ci.user_id = ?
   `, [userId]);
-  return rows;};
+  return rows;
+};
 
 export const addToCart = async (userId, productId, quantity = 1) => {
+  // First check product stock
+  const [product] = await db.query(
+    'SELECT stock FROM products WHERE id = ?',
+    [productId]
+  );
+
+  if (!product.length) {
+    throw new Error('Product not found');
+  }
+
+  const availableStock = product[0].stock;
+
+  // Check if item already exists in cart
   const [existing] = await db.query(
     'SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?',
     [userId, productId]
   );
 
+  const currentCartQuantity = existing.length ? existing[0].quantity : 0;
+  const newQuantity = currentCartQuantity + quantity;
+
+  if (newQuantity > availableStock) {
+    throw new Error(`Not enough stock available. Only ${availableStock} items left.`);
+  }
+
   if (existing.length > 0) {
-    const newQuantity = existing[0].quantity + quantity;
     await db.query(
       'UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?',
       [newQuantity, userId, productId]
@@ -34,6 +56,16 @@ export const updateCartItem = async (userId, productId, quantity) => {
   if (quantity < 1) {
     await removeFromCart(userId, productId);
   } else {
+    // Check stock before updating
+    const [product] = await db.query(
+      'SELECT stock FROM products WHERE id = ?',
+      [productId]
+    );
+    
+    if (product.length && quantity > product[0].stock) {
+      throw new Error(`Only ${product[0].stock} items available`);
+    }
+
     await db.query(
       'UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?',
       [quantity, userId, productId]

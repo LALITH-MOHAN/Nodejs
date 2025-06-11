@@ -5,15 +5,30 @@ export const createOrder = async (userId, total, items) => {
   try {
     await conn.beginTransaction();
 
-    // Create the order
+    // 1. Create the order
     const [orderResult] = await conn.query(
       'INSERT INTO orders (user_id, total) VALUES (?, ?)',
       [userId, total]
     );
     const orderId = orderResult.insertId;
 
-    // Add order items
+    // 2. Add order items and update product stock
     for (const item of items) {
+      // First check if product exists and has enough stock (with row lock)
+      const [product] = await conn.query(
+        'SELECT stock FROM products WHERE id = ? FOR UPDATE',
+        [item.id]
+      );
+
+      if (!product.length) {
+        throw new Error(`Product ${item.id} not found`);
+      }
+
+      if (product[0].stock < item.quantity) {
+        throw new Error(`Not enough stock for product ${item.id}`);
+      }
+
+      // Insert order item
       await conn.query(
         `INSERT INTO order_items 
         (order_id, product_id, title, price, quantity, thumbnail) 
@@ -29,7 +44,32 @@ export const createOrder = async (userId, total, items) => {
     }
 
     await conn.commit();
-    return orderId;
+    
+    // Return the complete order details
+    const [newOrder] = await conn.query(
+      `SELECT o.id, o.total, o.status, o.created_at as date
+       FROM orders o
+       WHERE o.id = ?`,
+      [orderId]
+    );
+
+    const [orderItems] = await conn.query(
+      `SELECT 
+        product_id as id,
+        title,
+        price,
+        quantity,
+        thumbnail
+       FROM order_items
+       WHERE order_id = ?`,
+      [orderId]
+    );
+
+    return {
+      ...newOrder[0],
+      items: orderItems
+    };
+
   } catch (error) {
     await conn.rollback();
     throw error;
