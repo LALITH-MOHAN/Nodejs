@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS products (
 
 
 INSERT INTO products (id, title, price, thumbnail, stock, description, category) VALUES
-(1, 'iPhone 9', 549.00, 'https://placehold.co/300x300?text=iPhone+9', 94, 'An apple mobile which is nothing like apple', 'smartphones'),
+(1, 'iPhone 9', 549.00, '/images/products/iphone9.jpg', 94, 'An apple mobile which is nothing like apple', 'smartphones'),
 (2, 'iPhone X', 899.00, 'https://placehold.co/300x300?text=iPhone+X', 34, 'Model A19211 6.5-inch Super Retina HD display', 'smartphones'),
 (3, 'Samsung Universe 9', 1249.00, 'https://placehold.co/300x300?text=Samsung+Universe+9', 36, 'Goes beyond Galaxy to the Universe', 'smartphones'),
 (4, 'OPPOF19', 280.00, 'https://placehold.co/300x300?text=OPPO+F19', 123, 'OPPO F19 announced on April 2021', 'smartphones'),
