@@ -33,8 +33,9 @@ export const addToCart = async (userId, productId, quantity = 1) => {
   const currentCartQuantity = existing.length ? existing[0].quantity : 0;
   const newQuantity = currentCartQuantity + quantity;
 
+  // Check if user is trying to add more than available stock (including what's already in their cart)
   if (newQuantity > availableStock) {
-    throw new Error(`Not enough stock available. Only ${availableStock} items left.`);
+    throw new Error(`You can't add more than ${availableStock} items of this product`);
   }
 
   if (existing.length > 0) {
@@ -56,14 +57,14 @@ export const updateCartItem = async (userId, productId, quantity) => {
   if (quantity < 1) {
     await removeFromCart(userId, productId);
   } else {
-    // Check stock before updating
+    // Check stock before updating (considering what's already in their cart)
     const [product] = await db.query(
       'SELECT stock FROM products WHERE id = ?',
       [productId]
     );
     
     if (product.length && quantity > product[0].stock) {
-      throw new Error(`Only ${product[0].stock} items available`);
+      throw new Error(`You can't add more than ${product[0].stock} items of this product`);
     }
 
     await db.query(
