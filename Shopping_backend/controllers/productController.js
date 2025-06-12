@@ -4,14 +4,23 @@ import {
   insertProduct,
   updateProductById,
   deleteProductById,
-  fetchProductsByCategory
+  fetchProductsByCategory,
+  fetchAllCategories
 } from "../models/productModel.js";
+
+export const getAllCategories = async (req, res) => {
+  try {
+    const categories = await fetchAllCategories();
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const getAllProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 9;
-    const data = await fetchAllProducts(page, limit);
+    const data = await fetchAllProducts(page);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -65,8 +74,7 @@ export const getProductsByCategory = async (req, res) => {
   try {
     const category = req.params.category;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 9;
-    const data = await fetchProductsByCategory(category, page, limit);
+    const data = await fetchProductsByCategory(category, page); 
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

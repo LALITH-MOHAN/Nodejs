@@ -1,5 +1,12 @@
 import db from "../config/db.js";
 
+// Add this new function at the top
+export const fetchAllCategories = async () => {
+    const [rows] = await db.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
+    return rows.map(row => row.category);
+};
+
+// Keep all existing functions exactly the same
 export const fetchAllProducts = async (page = 1, limit = 9) => {
     const offset = (page - 1) * limit;
     const [rows] = await db.query(
@@ -19,7 +26,7 @@ export const fetchProductById = async (id) => {
     const [rows] = await db.query('SELECT id, title, price, thumbnail, stock, description, category FROM products WHERE id = ?', [id]);
     return rows[0];
 };
-
+  
 export const insertProduct = async ({ title, price, thumbnail, stock, description, category }) => {
     const [result] = await db.query(
       'INSERT INTO products (title, price, thumbnail, stock, description, category) VALUES (?, ?, ?, ?, ?, ?)',
@@ -27,7 +34,7 @@ export const insertProduct = async ({ title, price, thumbnail, stock, descriptio
     );
     return result.insertId;
 };
-
+  
 export const updateProductById = async (id, data) => {
     const { title, price, thumbnail, stock, description, category } = data;
     await db.query(
