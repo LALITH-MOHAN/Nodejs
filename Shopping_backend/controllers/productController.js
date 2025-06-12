@@ -9,8 +9,10 @@ import {
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await fetchAllProducts();
-    res.json(products);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const data = await fetchAllProducts(page, limit);
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -62,8 +64,10 @@ export const deleteProduct = async (req, res) => {
 export const getProductsByCategory = async (req, res) => {
   try {
     const category = req.params.category;
-    const products = await fetchProductsByCategory(category);
-    res.json(products);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const data = await fetchProductsByCategory(category, page, limit);
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
