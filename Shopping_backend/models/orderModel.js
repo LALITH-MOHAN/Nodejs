@@ -14,7 +14,6 @@ export const createOrder = async (userId, total, items) => {
 
     // 2. Add order items and update product stock
     for (const item of items) {
-      // First check if product exists and has enough stock (with row lock)
       const [product] = await conn.query(
         'SELECT stock FROM products WHERE id = ? FOR UPDATE',
         [item.id]
@@ -28,7 +27,6 @@ export const createOrder = async (userId, total, items) => {
         throw new Error(`Not enough stock for product ${item.id}`);
       }
 
-      // Insert order item
       await conn.query(
         `INSERT INTO order_items 
         (order_id, product_id, title, price, quantity, thumbnail) 
@@ -36,7 +34,6 @@ export const createOrder = async (userId, total, items) => {
         [orderId, item.id, item.title, item.price, item.quantity, item.thumbnail]
       );
 
-      // Update product stock
       await conn.query(
         'UPDATE products SET stock = stock - ? WHERE id = ?',
         [item.quantity, item.id]
@@ -45,7 +42,6 @@ export const createOrder = async (userId, total, items) => {
 
     await conn.commit();
     
-    // Return the complete order details
     const [newOrder] = await conn.query(
       `SELECT o.id, o.total, o.status, o.created_at as date
        FROM orders o
@@ -78,8 +74,10 @@ export const createOrder = async (userId, total, items) => {
   }
 };
 
-export const getUserOrders = async (userId) => {
+export const getUserOrders = async (userId, page = 1, limit = 10) => {
   try {
+    const offset = (page - 1) * limit;
+    
     // Get orders with items in a single query
     const [orders] = await db.query(
       `SELECT 
@@ -96,7 +94,16 @@ export const getUserOrders = async (userId) => {
       FROM orders o
       JOIN order_items oi ON o.id = oi.order_id
       WHERE o.user_id = ?
-      ORDER BY o.created_at DESC`,
+      ORDER BY o.created_at DESC
+      LIMIT ? OFFSET ?`,
+      [userId, limit, offset]
+    );
+
+    // Get total count for pagination
+    const [count] = await db.query(
+      `SELECT COUNT(DISTINCT o.id) as total
+       FROM orders o
+       WHERE o.user_id = ?`,
       [userId]
     );
 
@@ -122,7 +129,12 @@ export const getUserOrders = async (userId) => {
       });
     });
 
-    return Array.from(ordersMap.values());
+    return {
+      orders: Array.from(ordersMap.values()),
+      total: count[0].total,
+      totalPages: Math.ceil(count[0].total / limit),
+      currentPage: page
+    };
   } catch (error) {
     console.error('Error fetching user orders:', error);
     throw error;
