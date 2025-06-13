@@ -61,7 +61,7 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET || 'Nikithaa123', 
       { expiresIn: '1d' }
     );
-
+    
     const { password: _, ...userData } = user;
     res.json({ 
       message: 'Login successful',
