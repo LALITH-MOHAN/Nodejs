@@ -1,16 +1,16 @@
 import {
-  fetchAllProducts,
-  fetchProductById,
-  insertProduct,
-  updateProductById,
-  deleteProductById,
-  fetchProductsByCategory,
-  fetchAllCategories
-} from "../models/productModel.js";
+  getCategories,
+  getProducts,
+  getProduct,
+  createNewProduct,
+  updateExistingProduct,
+  deleteExistingProduct,
+  getProductsByCategoryService
+} from "../services/productService.js";
 
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await fetchAllCategories();
+    const categories = await getCategories();
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -20,7 +20,7 @@ export const getAllCategories = async (req, res) => {
 export const getAllProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const data = await fetchAllProducts(page);
+    const data = await getProducts(page);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,7 +30,7 @@ export const getAllProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const id = req.params.id;
-    const product = await fetchProductById(id);
+    const product = await getProduct(id);
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
   } catch (error) {
@@ -40,9 +40,7 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-    const productData = req.body;
-    const id = await insertProduct(productData);
-    const product = await fetchProductById(id);
+    const product = await createNewProduct(req.body);
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -52,8 +50,7 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const id = req.params.id;
-    await updateProductById(id, req.body);
-    const product = await fetchProductById(id);
+    const product = await updateExistingProduct(id, req.body);
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -63,7 +60,7 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const id = req.params.id;
-    await deleteProductById(id);
+    await deleteExistingProduct(id);
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -74,7 +71,7 @@ export const getProductsByCategory = async (req, res) => {
   try {
     const category = req.params.category;
     const page = parseInt(req.query.page) || 1;
-    const data = await fetchProductsByCategory(category, page); 
+    const data = await getProductsByCategoryService(category, page);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

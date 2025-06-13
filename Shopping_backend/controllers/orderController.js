@@ -1,4 +1,4 @@
-import { createOrder, getUserOrders } from "../models/orderModel.js";
+import { placeUserOrder, fetchUserOrders } from "../services/orderService.js";
 
 export const placeOrder = async (req, res) => {
   try {
@@ -9,8 +9,8 @@ export const placeOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
-    const order = await createOrder(userId, total, items);
-    const { orders } = await getUserOrders(userId);
+    await placeUserOrder(userId, items, total);
+    const { orders } = await fetchUserOrders(userId);
     
     res.status(201).json(orders);
   } catch (error) {
@@ -22,7 +22,8 @@ export const getOrders = async (req, res) => {
   try {
     const userId = req.user.id;
     const page = parseInt(req.query.page) || 1;
-    const { orders, total, totalPages, currentPage } = await getUserOrders(userId, page);
+    
+    const { orders, total, totalPages, currentPage } = await fetchUserOrders(userId, page);
     res.json({
       orders,
       pagination: {

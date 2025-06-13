@@ -1,11 +1,4 @@
-import {
-    fetchAllProducts,
-    fetchProductById,
-    insertProduct,
-    updateProductById,
-    deleteProductById,
-    fetchProductsByCategory,
-    fetchAllCategories
+import {fetchAllProducts,fetchProductById,insertProduct,updateProductById,deleteProductById,fetchProductsByCategory,fetchAllCategories
   } from "../models/productModel.js";
   
   export const getCategories = async () => {
