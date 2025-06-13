@@ -14,6 +14,8 @@ export const createOrder = async (userId, total, items) => {
 
     // 2. Add order items and update product stock
     for (const item of items) {
+      console.log(` Checking stock for user ${userId} and product ${item.id} at`, new Date().toISOString());
+
       const [product] = await conn.query(
         'SELECT stock FROM products WHERE id = ? FOR UPDATE',
         [item.id]
