@@ -14,7 +14,7 @@ export const createOrder = async (userId, total, items) => {
 
     // 2. Add order items and update product stock
     for (const item of items) {
-      console.log(` Checking stock for user ${userId} and product ${item.id} at`, new Date().toISOString());
+      console.log(`Checking stock for user ${userId} and product ${item.id} at`, new Date().toISOString());
 
       const [product] = await conn.query(
         'SELECT stock FROM products WHERE id = ? FOR UPDATE',
@@ -64,8 +64,17 @@ export const createOrder = async (userId, total, items) => {
     );
 
     return {
-      ...newOrder[0],
-      items: orderItems
+      id: newOrder[0].id,
+      total: parseFloat(newOrder[0].total),
+      status: newOrder[0].status,
+      date: newOrder[0].date.toISOString(),
+      items: orderItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        price: parseFloat(item.price),
+        quantity: item.quantity,
+        thumbnail: item.thumbnail
+      }))
     };
 
   } catch (error) {
@@ -131,10 +140,12 @@ export const getUserOrders = async (userId, page = 1, limit = 10) => {
       });
     });
 
+    const totalCount = count[0]?.total || 0;
+    
     return {
       orders: Array.from(ordersMap.values()),
-      total: count[0].total,
-      totalPages: Math.ceil(count[0].total / limit),
+      total: totalCount,
+      totalPages: Math.ceil(totalCount / limit),
       currentPage: page
     };
   } catch (error) {

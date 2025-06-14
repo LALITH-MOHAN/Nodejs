@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "test:unit": "vitest run unit",
+    "test:integration": "vitest run integration"
   },
   "keywords": [],
   "author": "",
