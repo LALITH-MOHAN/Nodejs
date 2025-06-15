@@ -6,7 +6,7 @@ import {
     updateCartItem,
     removeFromCart,
     clearCart
-  } from "../models/cartModel.js";
+  } from "../model/cartModel.js";
   
   export const fetchCart = async (userId) => {
     return await getCartItems(userId);

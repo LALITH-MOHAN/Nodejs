@@ -6,7 +6,7 @@ import {
   deleteProductById,
   fetchProductsByCategory,
   fetchAllCategories
-} from "../models/productModel.js";
+} from "../model/productModel.js";
 
 export const getCategories = async () => {
   return await fetchAllCategories();

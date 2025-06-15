@@ -1,5 +1,5 @@
 
-import { createOrder, getUserOrders } from "../models/orderModel.js";
+import { createOrder, getUserOrders } from "../model/orderModel.js";
 
 export const placeUserOrder = async (userId, items, total) => {
   return await createOrder(userId, total, items);

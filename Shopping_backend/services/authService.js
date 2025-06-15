@@ -5,7 +5,7 @@ import {
   createUser,
   findUserById,
   checkEmailExists
-} from '../models/authModel.js';
+} from '../model/authModel.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'Nikithaa123';
 
