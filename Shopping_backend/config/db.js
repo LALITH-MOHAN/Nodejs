@@ -1,12 +1,15 @@
-import mysql from 'mysql2/promise';
+import { Sequelize } from 'sequelize';
 
-const db = await mysql.createPool({
+const sequelize = new Sequelize('shopping_sequelize', 'root', 'root', {
   host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'shopping_cart',
-  waitForConnections: true,
-  connectionLimit: 10
+  dialect: 'mysql',
+  logging: false,
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  }
 });
 
-export default db;
+export default sequelize;

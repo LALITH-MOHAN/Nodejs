@@ -12,29 +12,33 @@ const Product = sequelize.define('Product', {
     allowNull: false
   },
   price: {
-    type: DataTypes.FLOAT,
-    allowNull: false
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: 0
+    }
   },
   thumbnail: {
-    type: DataTypes.STRING(512),
-    allowNull: true
+    type: DataTypes.STRING(512)
   },
   stock: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: true
+    type: DataTypes.TEXT
   },
   category: {
-    type: DataTypes.STRING(100),
-    allowNull: true
+    type: DataTypes.STRING(100)
   }
 }, {
   tableName: 'products',
-  timestamps: false,
-  freezeTableName: true
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false
 });
 
 export default Product;

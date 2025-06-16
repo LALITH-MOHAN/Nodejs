@@ -10,10 +10,22 @@ import {
 
 export const getAllCategories = async (req, res) => {
   try {
+    console.log('Received request for categories');
     const categories = await getCategories();
+    
+    if (!categories || categories.length === 0) {
+      console.log('Returning empty categories array');
+      return res.json([]); 
+    }
+    
+    console.log('Sending categories:', categories);
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Controller error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch categories',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

@@ -1,155 +1,102 @@
-import db from "../config/db.js";
+import { Order, OrderItem, Product, sequelize } from '../models/index.js';
 
 export const createOrder = async (userId, total, items) => {
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-
-    // 1. Create the order
-    const [orderResult] = await conn.query(
-      'INSERT INTO orders (user_id, total) VALUES (?, ?)',
-      [userId, total]
+  return await sequelize.transaction(async (t) => {
+    const order = await Order.create(
+      { userId, total },
+      { transaction: t }
     );
-    const orderId = orderResult.insertId;
 
-    // 2. Add order items and update product stock
     for (const item of items) {
-      console.log(`Checking stock for user ${userId} and product ${item.id} at`, new Date().toISOString());
+      const product = await Product.findByPk(item.id, {
+        attributes: ['stock'],
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
 
-      const [product] = await conn.query(
-        'SELECT stock FROM products WHERE id = ? FOR UPDATE',
-        [item.id]
-      );
-
-      if (!product.length) {
+      if (!product) {
         throw new Error(`Product ${item.id} not found`);
       }
 
-      if (product[0].stock < item.quantity) {
+      if (product.stock < item.quantity) {
         throw new Error(`Not enough stock for product ${item.id}`);
       }
 
-      await conn.query(
-        `INSERT INTO order_items 
-        (order_id, product_id, title, price, quantity, thumbnail) 
-        VALUES (?, ?, ?, ?, ?, ?)`,
-        [orderId, item.id, item.title, item.price, item.quantity, item.thumbnail]
-      );
+      await OrderItem.create({
+        orderId: order.id,
+        productId: item.id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        thumbnail: item.thumbnail
+      }, { transaction: t });
 
-      await conn.query(
-        'UPDATE products SET stock = stock - ? WHERE id = ?',
-        [item.quantity, item.id]
+      await Product.update(
+        { stock: sequelize.literal(`stock - ${item.quantity}`) },
+        { where: { id: item.id }, transaction: t }
       );
     }
 
-    await conn.commit();
-    
-    const [newOrder] = await conn.query(
-      `SELECT o.id, o.total, o.status, o.created_at as date
-       FROM orders o
-       WHERE o.id = ?`,
-      [orderId]
-    );
-
-    const [orderItems] = await conn.query(
-      `SELECT 
-        product_id as id,
-        title,
-        price,
-        quantity,
-        thumbnail
-       FROM order_items
-       WHERE order_id = ?`,
-      [orderId]
-    );
+    const orderWithItems = await Order.findByPk(order.id, {
+      include: [{
+        model: OrderItem,
+        attributes: ['productId', 'title', 'price', 'quantity', 'thumbnail'],
+        required: false
+      }],
+      transaction: t
+    });
 
     return {
-      id: newOrder[0].id,
-      total: parseFloat(newOrder[0].total),
-      status: newOrder[0].status,
-      date: newOrder[0].date.toISOString(),
-      items: orderItems.map(item => ({
-        id: item.id,
+      id: orderWithItems.id,
+      total: parseFloat(orderWithItems.total),
+      status: orderWithItems.status,
+      date: orderWithItems.created_at.toISOString(),
+      items: orderWithItems.OrderItems.map(item => ({
+        id: item.productId,
         title: item.title,
         price: parseFloat(item.price),
         quantity: item.quantity,
         thumbnail: item.thumbnail
       }))
     };
-
-  } catch (error) {
-    await conn.rollback();
-    throw error;
-  } finally {
-    conn.release();
-  }
+  });
 };
 
 export const getUserOrders = async (userId, page = 1, limit = 10) => {
-  try {
-    const offset = (page - 1) * limit;
-    
-    // Get orders with items in a single query
-    const [orders] = await db.query(
-      `SELECT 
-        o.id, 
-        o.user_id as userId,
-        o.total, 
-        o.status, 
-        o.created_at as date,
-        oi.product_id as productId,
-        oi.title,
-        oi.price,
-        oi.quantity,
-        oi.thumbnail
-      FROM orders o
-      JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.user_id = ?
-      ORDER BY o.created_at DESC
-      LIMIT ? OFFSET ?`,
-      [userId, limit, offset]
-    );
+  const offset = (page - 1) * limit;
+  
+  const { count, rows } = await Order.findAndCountAll({
+    where: { userId },
+    include: [{
+      model: OrderItem,
+      attributes: ['productId', 'title', 'price', 'quantity', 'thumbnail'],
+      required: true
+    }],
+    order: [['created_at', 'DESC']],
+    limit,
+    offset,
+    distinct: true 
+  });
 
-    // Get total count for pagination
-    const [count] = await db.query(
-      `SELECT COUNT(DISTINCT o.id) as total
-       FROM orders o
-       WHERE o.user_id = ?`,
-      [userId]
-    );
+  const orders = rows.map(order => ({
+    id: order.id,
+    userId: order.userId,
+    total: parseFloat(order.total),
+    status: order.status,
+    date: order.created_at.toISOString(),
+    items: order.OrderItems.map(item => ({
+      id: item.productId,
+      title: item.title,
+      price: parseFloat(item.price),
+      quantity: item.quantity,
+      thumbnail: item.thumbnail
+    }))
+  }));
 
-    // Group items by order
-    const ordersMap = new Map();
-    orders.forEach(row => {
-      if (!ordersMap.has(row.id)) {
-        ordersMap.set(row.id, {
-          id: row.id,
-          userId: row.userId,
-          total: parseFloat(row.total),
-          status: row.status,
-          date: row.date.toISOString(),
-          items: []
-        });
-      }
-      ordersMap.get(row.id).items.push({
-        id: row.productId,
-        title: row.title,
-        price: parseFloat(row.price),
-        quantity: row.quantity,
-        thumbnail: row.thumbnail
-      });
-    });
-
-    const totalCount = count[0]?.total || 0;
-    
-    return {
-      orders: Array.from(ordersMap.values()),
-      total: totalCount,
-      totalPages: Math.ceil(totalCount / limit),
-      currentPage: page
-    };
-  } catch (error) {
-    console.error('Error fetching user orders:', error);
-    throw error;
-  }
+  return {
+    orders,
+    total: count,
+    totalPages: Math.ceil(count / limit),
+    currentPage: page
+  };
 };

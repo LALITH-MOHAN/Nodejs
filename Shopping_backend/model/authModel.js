@@ -1,31 +1,25 @@
-import db from '../config/db.js';
+import { User } from '../models/index.js';
 
 export const findUserByEmail = async (email) => {
-  const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-  return rows[0];
+  return await User.findOne({ where: { email } });
 };
 
 export const createUser = async (userData) => {
   const { name, email, password, role = 'customer' } = userData;
-  const [result] = await db.query(
-    'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-    [name, email, password, role]
-  );
-  return result.insertId;
+  const user = await User.create({ name, email, password, role });
+  return user.id;
 };
 
 export const findUserById = async (id) => {
-  const [rows] = await db.query(
-    'SELECT id, name, email, role FROM users WHERE id = ?', 
-    [id]
-  );
-  return rows[0];
+  return await User.findByPk(id, {
+    attributes: ['id', 'name', 'email', 'role']
+  });
 };
 
 export const checkEmailExists = async (email) => {
-  const [rows] = await db.query(
-    'SELECT id FROM users WHERE email = ?', 
-    [email]
-  );
-  return rows.length > 0;
+  const user = await User.findOne({ 
+    where: { email },
+    attributes: ['id']
+  });
+  return !!user;
 };

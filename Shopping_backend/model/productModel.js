@@ -1,64 +1,74 @@
-import db from "../config/db.js";
-
+import { Product, sequelize } from '../models/index.js';
 export const fetchAllCategories = async () => {
-    const [rows] = await db.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
-    return rows.map(row => row.category);
+  try {
+    console.log('Executing Sequelize query for categories');
+    const categories = await Product.findAll({
+      attributes: [
+        [sequelize.fn('DISTINCT', sequelize.col('category')), 'category']
+      ],
+      where: sequelize.where(sequelize.col('category'), 'IS NOT', null),
+      raw: true
+    });
+    
+    return categories.map(row => row.category);
+  } catch (error) {
+    console.error('Model error:', error);
+    throw error;
+  }
 };
-
 export const fetchAllProducts = async (page = 1, limit = 9) => {
-    const offset = (page - 1) * limit;
-    const [rows] = await db.query(
-      'SELECT id, title, price, thumbnail, stock, description, category FROM products LIMIT ? OFFSET ?',
-      [limit, offset]
-    );
-    const [count] = await db.query('SELECT COUNT(*) as total FROM products');
-    return {
-      products: rows,
-      total: count[0].total,
-      totalPages: Math.ceil(count[0].total / limit),
-      currentPage: page
-    };
+  const offset = (page - 1) * limit;
+  
+  const { count, rows } = await Product.findAndCountAll({
+    attributes: ['id', 'title', 'price', 'thumbnail', 'stock', 'description', 'category'],
+    limit,
+    offset,
+    raw: true
+  });
+  
+  return {
+    products: rows,
+    total: count,
+    totalPages: Math.ceil(count / limit),
+    currentPage: page
+  };
 };
 
 export const fetchProductById = async (id) => {
-    const [rows] = await db.query('SELECT id, title, price, thumbnail, stock, description, category FROM products WHERE id = ?', [id]);
-    return rows[0];
+  return await Product.findByPk(id, {
+    attributes: ['id', 'title', 'price', 'thumbnail', 'stock', 'description', 'category'],
+    raw: true
+  });
 };
-  
-export const insertProduct = async ({ title, price, thumbnail, stock, description, category }) => {
-    const [result] = await db.query(
-      'INSERT INTO products (title, price, thumbnail, stock, description, category) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, price, thumbnail, stock, description, category]
-    );
-    return result.insertId;
+
+export const insertProduct = async (productData) => {
+  const product = await Product.create(productData);
+  return product.id;
 };
-  
+
 export const updateProductById = async (id, data) => {
-    const { title, price, thumbnail, stock, description, category } = data;
-    await db.query(
-      'UPDATE products SET title=?, price=?, thumbnail=?, stock=?, description=?, category=? WHERE id=?',
-      [title, price, thumbnail, stock, description, category, id]
-    );
+  await Product.update(data, { where: { id } });
 };
 
 export const deleteProductById = async (id) => {
-    await db.query('DELETE FROM products WHERE id = ?', [id]);
+  await Product.destroy({ where: { id } });
 };
 
 export const fetchProductsByCategory = async (category, page = 1, limit = 9) => {
-    const offset = (page - 1) * limit;
-    const [rows] = await db.query(
-      'SELECT id, title, price, thumbnail, stock, description, category FROM products WHERE category = ? LIMIT ? OFFSET ?',
-      [category, limit, offset]
-    );
-    const [count] = await db.query(
-      'SELECT COUNT(*) as total FROM products WHERE category = ?',
-      [category]
-    );
-    return {
-      products: rows,
-      total: count[0].total,
-      totalPages: Math.ceil(count[0].total / limit),
-      currentPage: page
-    };
+  const offset = (page - 1) * limit;
+  
+  const { count, rows } = await Product.findAndCountAll({
+    attributes: ['id', 'title', 'price', 'thumbnail', 'stock', 'description', 'category'],
+    where: { category },
+    limit,
+    offset,
+    raw: true
+  });
+  
+  return {
+    products: rows,
+    total: count,
+    totalPages: Math.ceil(count / limit),
+    currentPage: page
+  };
 };

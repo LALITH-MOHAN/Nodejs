@@ -1,12 +1,11 @@
-// models/User.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true
   },
   name: {
     type: DataTypes.STRING(100),
@@ -15,7 +14,10 @@ const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING(150),
     allowNull: false,
-    unique: true
+    unique: true,
+    validate: {
+      isEmail: true
+    }
   },
   password: {
     type: DataTypes.STRING(255),
@@ -24,14 +26,12 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.ENUM('customer', 'admin'),
     defaultValue: 'customer'
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'users',
-  timestamps: false
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false
 });
 
 export default User;

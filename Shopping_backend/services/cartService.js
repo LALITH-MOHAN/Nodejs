@@ -1,4 +1,3 @@
-// services/cartService.js
 
 import {
     getCartItems,

@@ -46,7 +46,7 @@ async function simulateConcurrentOrders() {
   ]);
 
   // Handle result for User A
-  console.log('🔹 User A order result:');
+  console.log('🔹User A order result:');
   if (resultA.status === 'fulfilled') {
     console.log('Success:', resultA.value);
   } else {
