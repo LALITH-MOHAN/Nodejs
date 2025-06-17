@@ -34,4 +34,10 @@ const User = sequelize.define('User', {
   updatedAt: false
 });
 
+User.associate = function() {
+  const { CartItem, Order } = sequelize.models;
+  User.hasMany(CartItem, { foreignKey: 'userId' });
+  User.hasMany(Order, { foreignKey: 'userId' });
+};
+
 export default User;

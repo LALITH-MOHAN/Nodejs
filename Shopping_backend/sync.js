@@ -1,8 +1,29 @@
-import { sequelize, User, Product, CartItem, Order, OrderItem } from './models/index.js';
+import sequelize from './config/db.js';
+import User from './models/userModel.js';
+import Product from './models/productModel.js';
+import CartItem from './models/cartItemModel.js';
+import Order from './models/orderModel.js';
+import OrderItem from './models/orderItemModel.js';
 
 async function syncDatabase() {
   try {
-    // Test the connection first
+    // Import all models to register them with Sequelize
+    const models = {
+      User,
+      Product,
+      CartItem,
+      Order,
+      OrderItem
+    };
+
+    // Set up associations
+    Object.values(models).forEach(model => {
+      if (model.associate) {
+        model.associate(models);
+      }
+    });
+
+    // Test the connection
     await sequelize.authenticate();
     console.log('Connection has been established successfully.');
 

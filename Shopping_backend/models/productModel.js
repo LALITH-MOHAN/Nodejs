@@ -41,4 +41,10 @@ const Product = sequelize.define('Product', {
   updatedAt: false
 });
 
+Product.associate = function() {
+  const { CartItem, OrderItem } = sequelize.models;
+  Product.hasMany(CartItem, { foreignKey: 'productId' });
+  Product.hasMany(OrderItem, { foreignKey: 'productId' });
+};
+
 export default Product;

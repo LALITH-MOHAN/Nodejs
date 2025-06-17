@@ -1,17 +1,15 @@
-// testConcurrentOrders-fetch.js
 
-// Replace with real JWT tokens from login
-const tokenA = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQ5ODEyMzYzLCJleHAiOjE3NDk4OTg3NjN9.KqdrYb5C_LcOHQKiYQYQUs_wK7_hO6406gjGOZAlCmo';
-const tokenB = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzQ5ODEyNDA1LCJleHAiOjE3NDk4OTg4MDV9.rE4w573Cd1akRRV9TfZqHzr2DzsnGR7V2LhTOl1sHXU';
+const tokenA = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUwMTMzNDEwLCJleHAiOjE3NTAyMTk4MTB9.TEFfAco5iSv8NBQKeKC1Yk0Yr00VC5aZcSmKdAqILuk';
+const tokenB = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzUwMTMzNDcyLCJleHAiOjE3NTAyMTk4NzJ9.7y31CLOAo3eNotx_2pvo46wkT0cfzOlyVcf4anTsxXM';
 
 const orderPayload = {
   items: [
     {
       id: 2,
       title: 'iPhone X',
-      price:   897.99 ,
-      quantity: 28,
-      thumbnail: 'http://localhost:3000/products/iphone_x_1749779016142.jpg'
+      price:   898.00 ,
+      quantity: 2,
+      thumbnail: 'http://localhost:3000/products/iPhone X.jpg'
     }
   ],
   total: 897.99 * 28
@@ -46,7 +44,7 @@ async function simulateConcurrentOrders() {
   ]);
 
   // Handle result for User A
-  console.log('🔹User A order result:');
+  console.log('User A order result:');
   if (resultA.status === 'fulfilled') {
     console.log('Success:', resultA.value);
   } else {

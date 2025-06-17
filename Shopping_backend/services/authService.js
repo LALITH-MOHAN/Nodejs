@@ -1,14 +1,35 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import {
-  findUserByEmail,
-  createUser,
-  findUserById,
-  checkEmailExists
-} from '../model/authModel.js';
+import User from '../models/userModel.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'Nikithaa123';
 
+// Model functions
+const findUserByEmail = async (email) => {
+  return await User.findOne({ where: { email } });
+};
+
+const createUser = async (userData) => {
+  const { name, email, password, role = 'customer' } = userData;
+  const user = await User.create({ name, email, password, role });
+  return user.id;
+};
+
+const findUserById = async (id) => {
+  return await User.findByPk(id, {
+    attributes: ['id', 'name', 'email', 'role']
+  });
+};
+
+const checkEmailExists = async (email) => {
+  const user = await User.findOne({ 
+    where: { email },
+    attributes: ['id']
+  });
+  return !!user;
+};
+
+// Service functions
 export const registerUser = async ({ name, email, password }) => {
   const emailExists = await checkEmailExists(email);
   if (emailExists) {

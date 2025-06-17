@@ -1,4 +1,7 @@
-import { Order, OrderItem, Product, sequelize } from '../models/index.js';
+import Order from '../models/orderModel.js';
+import OrderItem from '../models/orderItemModel.js';
+import Product from '../models/productModel.js';
+import sequelize from '../config/db.js';
 
 export const createOrder = async (userId, total, items) => {
   return await sequelize.transaction(async (t) => {

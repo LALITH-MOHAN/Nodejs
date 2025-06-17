@@ -7,23 +7,27 @@ const OrderItem = sequelize.define('OrderItem', {
     primaryKey: true,
     autoIncrement: true
   },
+  orderId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'order_id'
+  },
+  productId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'product_id'
+  },
   title: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
   price: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    validate: {
-      min: 0
-    }
+    allowNull: false
   },
   quantity: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 1
-    }
+    allowNull: false
   },
   thumbnail: {
     type: DataTypes.STRING(512)
@@ -32,5 +36,11 @@ const OrderItem = sequelize.define('OrderItem', {
   tableName: 'order_items',
   timestamps: false
 });
+
+OrderItem.associate = function() {
+  const { Order, Product } = sequelize.models;
+  OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
+  OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+};
 
 export default OrderItem;

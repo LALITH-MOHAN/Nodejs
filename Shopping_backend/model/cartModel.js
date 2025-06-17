@@ -1,4 +1,6 @@
-import { CartItem, Product, sequelize } from '../models/index.js';
+import CartItem from '../models/cartItemModel.js';
+import Product from '../models/productModel.js';
+import sequelize from '../config/db.js';
 
 export const getCartItems = async (userId) => {
   return await CartItem.findAll({
@@ -19,7 +21,6 @@ export const getCartItems = async (userId) => {
     stock: item['Product.stock']
   })));
 };
-
 export const addToCart = async (userId, productId, quantity = 1) => {
   return await sequelize.transaction(async (t) => {
     // Check product stock

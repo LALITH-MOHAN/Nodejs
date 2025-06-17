@@ -39,4 +39,10 @@ const CartItem = sequelize.define('CartItem', {
   ]
 });
 
+CartItem.associate = function() {
+  const { User, Product } = sequelize.models;
+  CartItem.belongsTo(User, { foreignKey: 'userId' });
+  CartItem.belongsTo(Product, { foreignKey: 'productId' });
+};
+
 export default CartItem;

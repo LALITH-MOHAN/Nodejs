@@ -1,4 +1,6 @@
-import { Product, sequelize } from '../models/index.js';
+import Product from '../models/productModel.js';
+import sequelize from '../config/db.js';
+
 export const fetchAllCategories = async () => {
   try {
     console.log('Executing Sequelize query for categories');
@@ -16,6 +18,7 @@ export const fetchAllCategories = async () => {
     throw error;
   }
 };
+
 export const fetchAllProducts = async (page = 1, limit = 9) => {
   const offset = (page - 1) * limit;
   

@@ -18,7 +18,6 @@ export const getAllCategories = async (req, res) => {
       return res.json([]); 
     }
     
-    console.log('Sending categories:', categories);
     res.json(categories);
   } catch (error) {
     console.error('Controller error:', error);
