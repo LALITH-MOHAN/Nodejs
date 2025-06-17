@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
+import { getModuleLogger } from '../utils/logger.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'Nikithaa123';
+const logger = getModuleLogger('user');
 
 // Model functions
 const findUserByEmail = async (email) => {
@@ -31,13 +33,15 @@ const checkEmailExists = async (email) => {
 
 // Service functions
 export const registerUser = async ({ name, email, password }) => {
+  logger.info(`Registering user with email: ${email}`);
+  
   const emailExists = await checkEmailExists(email);
   if (emailExists) {
+    logger.warn(`Email already exists: ${email}`);
     throw new Error('Email already exists');
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
   const userId = await createUser({
     name,
     email,
@@ -49,6 +53,8 @@ export const registerUser = async ({ name, email, password }) => {
     expiresIn: '1d'
   });
 
+  logger.info(`User registered successfully: ${email} (ID: ${userId})`);
+
   return {
     message: 'User registered successfully',
     token,
@@ -57,13 +63,17 @@ export const registerUser = async ({ name, email, password }) => {
 };
 
 export const loginUser = async ({ email, password }) => {
+  logger.info(`Login attempt for email: ${email}`);
+
   const user = await findUserByEmail(email);
   if (!user) {
+    logger.warn(`Login failed - user not found: ${email}`);
     throw new Error('Invalid credentials');
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
+    logger.warn(`Login failed - incorrect password for email: ${email}`);
     throw new Error('Invalid credentials');
   }
 
@@ -73,6 +83,8 @@ export const loginUser = async ({ email, password }) => {
 
   const { password: _, ...userData } = user;
 
+  logger.info(`User logged in successfully: ${email} (ID: ${user.id})`);
+
   return {
     message: 'Login successful',
     token,
@@ -81,9 +93,14 @@ export const loginUser = async ({ email, password }) => {
 };
 
 export const getCurrentUserProfile = async (userId) => {
+  logger.info(`Fetching profile for user ID: ${userId}`);
+
   const user = await findUserById(userId);
   if (!user) {
+    logger.error(`User not found with ID: ${userId}`);
     throw new Error('User not found');
   }
+
+  logger.debug(`User profile fetched: ${JSON.stringify(user)}`);
   return user;
 };
